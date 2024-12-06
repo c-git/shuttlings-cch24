@@ -1905,6 +1905,7 @@ dependencies = [
  "shuttle-actix-web",
  "shuttle-runtime",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
