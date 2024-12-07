@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 use actix_web::web;
 
@@ -42,8 +42,41 @@ async fn task2(web::Query(Info2 { from, to }): web::Query<Info2>) -> String {
     result.to_string()
 }
 
+#[derive(serde::Deserialize)]
+struct Info3Dest {
+    from: Ipv6Addr,
+    key: Ipv6Addr,
+}
+
+async fn task3_dest(web::Query(Info3Dest { from, key }): web::Query<Info3Dest>) -> String {
+    let bits = key
+        .octets()
+        .iter()
+        .zip(from.octets())
+        .map(|(x, y)| x ^ y)
+        .collect::<Vec<u8>>();
+    let bits = bits.iter().fold(0u128, |acc, &x| (acc << 8) + x as u128);
+    let result = Ipv6Addr::from_bits(bits);
+    result.to_string()
+}
+
+#[derive(serde::Deserialize)]
+struct Info3Key {
+    from: Ipv6Addr,
+    to: Ipv6Addr,
+}
+
+async fn task3_key(web::Query(Info3Key { from, to }): web::Query<Info3Key>) -> String {
+    task3_dest(web::Query(Info3Dest { from, key: to })).await
+}
+
 pub(crate) fn scope() -> actix_web::Scope {
-    web::scope("2")
+    web::scope("/2")
         .route("/dest", web::get().to(task1))
         .route("/key", web::get().to(task2))
+        .service(
+            web::scope("/v6")
+                .route("/dest", web::get().to(task3_dest))
+                .route("/key", web::get().to(task3_key)),
+        )
 }
