@@ -6,6 +6,7 @@ use actix_web::{
 
 mod day02;
 mod day05;
+mod day09;
 mod day_minus_1;
 
 pub fn modify_service_config(cfg: &mut ServiceConfig) {
@@ -13,6 +14,7 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day_minus_1::scope().wrap(Logger::default()));
     cfg.service(day02::scope().wrap(Logger::default()));
     cfg.service(day05::scope().wrap(Logger::default()));
+    cfg.service(day09::scope().wrap(Logger::default()));
     cfg.default_service(web::route().to(not_found).wrap(Logger::default()));
 }
 
