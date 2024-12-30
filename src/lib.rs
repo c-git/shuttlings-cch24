@@ -14,7 +14,7 @@ pub fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day_minus_1::scope().wrap(Logger::default()));
     cfg.service(day02::scope().wrap(Logger::default()));
     cfg.service(day05::scope().wrap(Logger::default()));
-    cfg.service(day09::scope().wrap(Logger::default()));
+    day09::add_day09(cfg);
     cfg.default_service(web::route().to(not_found).wrap(Logger::default()));
 }
 
