@@ -8,6 +8,7 @@ mod day02;
 mod day05;
 mod day09;
 mod day12;
+mod day16;
 mod day_minus_1;
 
 /// This function is called once per worker
@@ -18,6 +19,7 @@ fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day05::scope().wrap(Logger::default()));
     cfg.service(day09::scope().wrap(Logger::default()));
     cfg.service(day12::scope().wrap(Logger::default()));
+    cfg.service(day16::scope().wrap(Logger::default()));
     cfg.default_service(web::route().to(not_found).wrap(Logger::default()));
 }
 
