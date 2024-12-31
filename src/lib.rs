@@ -38,7 +38,7 @@ pub fn setup_closure() -> impl FnOnce(&mut ServiceConfig) + Send + Clone + 'stat
     }
 }
 
-#[tracing::instrument(ret, level = "error")]
+#[tracing::instrument(name = "DEFAULT NOT FOUND HANDLER", ret, level = "error")]
 pub async fn not_found(req: HttpRequest) -> HttpResponse {
     HttpResponse::NotFound().body("404 - Not found\n")
 }
