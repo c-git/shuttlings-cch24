@@ -6,7 +6,7 @@ use std::{
     fmt::{Debug, Display},
     str::FromStr,
 };
-use tracing::{debug, info, instrument};
+use tracing::{info, instrument};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Color {
@@ -138,11 +138,18 @@ async fn lockfile(payload: Multipart) -> actix_web::Result<String> {
     let lockfile_contents = get_lockfile_contents(payload)
         .await
         .map_err(error::ErrorBadRequest)?;
-    debug!(lockfile_contents);
+
+    println!("Lockfile Contents:\n{lockfile_contents}");
 
     let mut checksums = vec![];
     for line in lockfile_contents.lines() {
-        if let Some(s) = line.strip_prefix("checksum = \"") {
+        validate_lockfile_line(line).map_err(error::ErrorBadRequest)?;
+        if let Some(s) = line.strip_prefix("checksum") {
+            let Some(s) = s.strip_prefix(" = \"") else {
+                return Err(error::ErrorBadRequest(
+                    "checksum lines to start with 'checksum = \"'",
+                ));
+            };
             let Some(s) = s.strip_suffix('"') else {
                 return Err(error::ErrorBadRequest(
                     "require checksum lines to end with trailing quote",
@@ -160,6 +167,25 @@ async fn lockfile(payload: Multipart) -> actix_web::Result<String> {
         .join("\n"))
 }
 
+fn validate_lockfile_line(line: &str) -> anyhow::Result<()> {
+    let line = line.trim();
+    (line.is_empty()
+        || line.starts_with('#')
+        || line.starts_with("version")
+        || line.starts_with("[")
+        || line.starts_with("]")
+        || line.starts_with("name")
+        || line.starts_with("version")
+        || line.starts_with("source")
+        || line.starts_with("checksum")
+        || line.starts_with("dependencies")
+        || line.starts_with('"'))
+    .then_some(())
+    .ok_or(anyhow::anyhow!(
+        "this line didn't match any we expected: {line:?}"
+    ))
+}
+
 async fn get_lockfile_contents(mut payload: Multipart) -> anyhow::Result<String> {
     let mut bytes = vec![];
     // iterate over multipart stream
@@ -167,7 +193,9 @@ async fn get_lockfile_contents(mut payload: Multipart) -> anyhow::Result<String>
         let Ok(mut field) = item else {
             bail!("failed to get payload field");
         };
-        let is_correct_field = field.name() == Some("lockfile");
+        // Second check added for what looks like a typo in the validator
+        let is_correct_field =
+            field.name() == Some("lockfile") || field.name() == Some("blockfile");
 
         // Field in turn is stream of *Bytes* object
         while let Some(chunk) = field.next().await {
