@@ -1,3 +1,4 @@
+use actix_files::Files;
 use actix_web::{
     middleware::Logger,
     web::{self, ServiceConfig},
@@ -10,6 +11,7 @@ mod day09;
 mod day12;
 mod day16;
 mod day19;
+mod day23;
 mod day_minus_1;
 
 /// This function is called once per worker
@@ -22,6 +24,8 @@ fn modify_service_config(cfg: &mut ServiceConfig) {
     cfg.service(day12::scope().wrap(Logger::default()));
     cfg.service(day16::scope().wrap(Logger::default()));
     cfg.service(day19::scope().wrap(Logger::default()));
+    cfg.service(day23::scope().wrap(Logger::default()));
+    cfg.service(Files::new("/assets", "assets"));
     cfg.default_service(web::route().to(not_found).wrap(Logger::default()));
 }
 

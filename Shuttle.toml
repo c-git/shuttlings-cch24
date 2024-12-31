@@ -1,2 +1,5 @@
 [deploy]
 deny_dirty = true
+
+[build]
+assets = ["assets/23.htm."]
