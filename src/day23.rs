@@ -1,7 +1,6 @@
 use actix_multipart::Multipart;
 use actix_web::{error, web};
 use anyhow::{bail, Context};
-use cargo_lock::Lockfile;
 use futures_util::StreamExt as _;
 use std::{
     fmt::{Debug, Display},
@@ -142,16 +141,16 @@ async fn lockfile(payload: Multipart) -> actix_web::Result<String> {
     debug!(lockfile_contents);
 
     let mut checksums = vec![];
-    println!("Lockfile Contents:\n{lockfile_contents}"); // TODO remove test code
-    let lockfile: Lockfile = lockfile_contents
-        .parse()
-        .context("failed to parse lockfile contents")
-        .map_err(error::ErrorBadRequest)?;
-    lockfile
-        .packages
-        .into_iter()
-        .filter_map(|x| x.checksum)
-        .for_each(|x| checksums.push(x.to_string()));
+    for line in lockfile_contents.lines() {
+        if let Some(s) = line.strip_prefix("checksum = \"") {
+            let Some(s) = s.strip_suffix('"') else {
+                return Err(error::ErrorBadRequest(
+                    "require checksum lines to end with trailing quote",
+                ));
+            };
+            checksums.push(s);
+        }
+    }
 
     Ok(checksums
         .into_iter()

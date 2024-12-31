@@ -534,18 +534,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cargo-lock"
-version = "10.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6469776d007022d505bbcc2be726f5f096174ae76d710ebc609eb3029a45b551"
-dependencies = [
- "semver",
- "serde",
- "toml",
- "url",
-]
-
-[[package]]
 name = "cargo-manifest"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2824,7 +2812,6 @@ dependencies = [
  "actix-multipart",
  "actix-web",
  "anyhow",
- "cargo-lock",
  "cargo-manifest",
  "chrono",
  "futures-util",
