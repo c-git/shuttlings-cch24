@@ -119,6 +119,7 @@ async fn present(path: web::Path<String>) -> actix_web::Result<String> {
 #[instrument(ret, err(Debug))]
 async fn ornament(path: web::Path<(String, String)>) -> actix_web::Result<String> {
     let (state, n) = path.into_inner();
+    let n = tera::escape_html(&n);
     let state: OrnamentState = state.parse()?;
     let next_state = state.toggle();
     Ok(format!(
