@@ -1,17 +1,11 @@
-use actix_web::{
-    error,
-    http::header::ContentType,
-    middleware::Logger,
-    web::{self, ServiceConfig},
-    HttpResponse,
-};
+use actix_web::{error, http::header::ContentType, web, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{fmt::Display, sync::Mutex, time::Instant};
 use tracing::{info, instrument, warn};
 
 #[derive(Debug)]
-struct Bucket {
+pub struct Bucket {
     remainder: u8,
     last_wd: Instant,
 }
@@ -144,27 +138,18 @@ async fn milk(
     }
 }
 
-pub fn add_day09(cfg: &mut ServiceConfig) {
-    cfg.service(scope().wrap(Logger::default()));
-
-    // This not correct but it is simple
-    // Each thread will create it's own bucket but there will not be duplicates
-    // Each new one created will replace the previous one so there will only be one.
-    // It results in a few extra allocations but I think for the code simplicity it's still a win
-    // See quote from actix_web docs
-    //
-    // > If an item of this type was already stored, it will be replaced and returned.
-    cfg.app_data(Bucket::new_wrapped());
-}
-
 #[instrument]
 async fn refill(bucket: web::Data<Mutex<Bucket>>) -> HttpResponse {
     bucket.lock().unwrap().refill_to_max();
     HttpResponse::Ok().finish()
 }
 
-fn scope() -> actix_web::Scope {
+pub fn scope() -> actix_web::Scope {
     web::scope("/9")
         .route("/milk", web::post().to(milk))
         .route("/refill", web::post().to(refill))
+}
+
+pub fn app_data() -> web::Data<Mutex<Bucket>> {
+    Bucket::new_wrapped()
 }

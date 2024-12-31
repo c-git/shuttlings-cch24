@@ -15,5 +15,5 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
         .init();
 
-    Ok(shuttlings_cch24::modify_service_config.into())
+    Ok(shuttlings_cch24::setup_closure().into())
 }
